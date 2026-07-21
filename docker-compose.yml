@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: halogold
+      POSTGRES_PASSWORD: halogold
+      POSTGRES_DB: halogold
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U halogold -d halogold"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    environment:
+      PORT: "8080"
+      DATABASE_URL: "postgres://halogold:halogold@db:5432/halogold?sslmode=disable"
+      GOLD_PRICE: "1945200"
+      DEFAULT_USER_ID: "1"
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
